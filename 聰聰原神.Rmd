@@ -1,0 +1,254 @@
+---
+title: "Yuan Shen"
+author: "Chishu Yin"
+date: "2022/10/27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+solve $\theta$
+```{r}
+EX<-seq(0,0,length.out=90)
+for( k in 1:90)
+{
+  if(k<90){
+  EX[k]<-k*(0.994^(k-1))*0.006}
+  else
+  {
+    EX[k]<-(0.994^89)*90
+  }
+  #print(EX[k])
+}
+sum(EX)
+1/sum(EX)
+
+1/0.016
+
+term<-seq(0,0,length.out=16)
+for(i in 1:16)
+{
+  term[i]<-0.994-i*0.06
+}
+
+
+
+EX<-seq(0,0,length.out=90)
+for( k in 1:90)
+{
+  if(k<74){
+  EX[k]<-k*(0.994^(k-1))*0.006}
+  else{ 
+  if(k==74)
+  {
+    EX[k]<- k*(0.994^73)*(1-term[k-73])
+  }
+  else if(k<90)
+  {
+    EX[k]<- k*(0.994^73)*(1-term[k-73])*prod(term[1:(k-74)])
+  }
+  
+  else
+  {
+    EX[k]<-(0.994^73)*prod(term)*90
+  }}
+  #print(EX[k])
+}
+sum(EX)
+
+
+
+
+term<-seq(0,0,length.out=89)
+for(i in 1:89)
+{ 
+  if(i==1){term[i]=0.994}
+  else{
+  term[i]<-1-((1-term[i-1])+(1-term[i-1])*0.02)}
+}
+
+
+
+EX<-seq(0,0,length.out=90)
+for( k in 1:90)
+{
+  if(k==1)
+  {
+    EX[k]<-0.006
+  }
+  
+  else if(k<90)
+  {
+    EX[k]<- k*prod(term[1:(k-1)])*(1-term[k])
+  }
+  
+  else
+  {
+    EX[k]<-prod(term)*90
+  }
+  #print(EX[k])
+}
+1/sum(EX)
+```
+
+Simulation
+```{r}
+n<-10000
+N<-100
+x<-seq(0,0,length.out=n)
+prob<-seq(0,0,length.out=N)
+for(i in 1:N)
+{ 
+  k<-1
+  for(j in 1:n)
+  {
+    if(j==1)
+    {
+      x[j]<-rbinom(1,1,0.006)
+      k<-k+1
+    }
+    else{
+    if( x[j-1]==0 & k<74 )
+    {
+      x[j]<-rbinom(1,1,0.006)
+      k<-k+1
+    }
+    if(x[j-1]==0 & k<90 & k>73 &j>1)
+    {
+      x[j]<-rbinom(1,1,0.006+(k-73)*0.06)
+      k<-k+1
+    }
+    if(x[j-1]==0 & k==90 & j>1)
+    {
+      x[j]<-1
+      k<-1
+    }
+    if(x[j-1]==1 )
+    {
+     # print(k)
+      x[j]<-rbinom(1,1,0.006)
+      k<-2
+    }
+    }
+    
+  }
+  prob[i]<-sum(x)/n
+}
+mean(prob)
+```
+
+
+```{r}
+prob<-seq(0,0,length.out=90)
+for(i in 1:90)
+{
+  if(i<74)
+  {
+    prob[i]<-0.006
+  }
+  else if(i<90)
+  {
+    prob[i]<-0.006 + (i-73)*0.06
+  }
+  else
+  {
+    prob[i]<-1
+  }
+}
+
+
+
+n<-10000
+N<-1000000
+x<-seq(0,0,length.out=n)
+chou <- seq(0,0,length.out=N)
+num_5star<- seq(0,0,length.out=N)
+earn <- seq(0,0,length.out=N)
+#prob<-seq(0,0,length.out=N)
+for(i in 1:N)
+{ 
+  k<-1
+  for(j in 1:n)
+  {
+    
+    
+    
+    x[j]<-rbinom(1,1,prob[k])
+    
+    if(x[j]==1)
+    {
+      if(num_5star[i]==0)
+      {
+        k<-1
+        num_5star[i]<-num_5star[i]+1
+      }
+      
+      else
+      {
+        if(runif(1,0,1)>0.5) #歪了
+        {
+          k<-1
+          chou[i]<-j
+          break;
+        }
+        else #沒歪
+        {
+          k<-1
+          num_5star[i]<-num_5star[i]+1
+          if(num_5star[i]==6)
+          {
+            chou[i]<-j
+            break;
+          }
+        }
+      }
+    }
+    
+    if(x[j]==0)
+    {
+      k<-k+1
+    }
+    
+  }
+  
+  
+  if(chou[i]<=200)
+  {
+    earn[i]<- -198
+  }
+  
+  else if(chou[i] <= 227)
+  {
+    earn[i]<- 0
+  }
+  else if(chou[i]<=361)
+  {
+    earn[i]<- (chou[i]-227)*14.5/2
+  }
+  else
+  {
+    earn[i]<- 976 + (chou[i]-361)*14.5
+  }
+}
+mean(chou)
+mean(num_5star)
+mean(earn)
+#hist(chou)
+#hist(num_5star)
+
+```
+
+```{r}
+k<-1
+for(i in 1:N)
+{
+  if(earn[i]<0)
+  {
+    k<-k+1
+  }
+}
+k/N 
+```
+
